@@ -15,17 +15,25 @@ class AnimatedGif(tk.Label):
         self.gif_path = gif_path
         self.frames = []
         self.current_frame = 0
+        self.update_id = None
         self.load_gif()
         self.update_animation()
 
     def load_gif(self):
-        self.frames = []  # Очистить предыдущие кадры  ошибка тут кста
+        if self.update_id:
+            self.after_cancel(self.update_id)
+
+        self.frames = []
         try:
             with Image.open(self.gif_path) as img:
                 for frame in ImageSequence.Iterator(img):
-                    self.frames.append(ImageTk.PhotoImage(frame))
+                    self.frames.append(ImageTk.PhotoImage(frame.copy()))
         except Exception as e:
             print(f"Error loading GIF {self.gif_path}: {e}")
+
+        if self.frames:
+            self.current_frame = 0
+            self.update_animation()
 
     def update_animation(self):
         if not self.frames:
@@ -34,7 +42,7 @@ class AnimatedGif(tk.Label):
         try:
             self.config(image=self.frames[self.current_frame])
             self.current_frame = (self.current_frame + 1) % len(self.frames)
-            self.after(50, self.update_animation)
+            self.update_id = self.after(50, self.update_animation)
         except Exception as e:
             print(f"Error during animation update: {e}")
 

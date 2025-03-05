@@ -39,10 +39,15 @@ class AnimatedGif(tk.Label):
         if not self.frames:
             print("No frames to display")
             return
+
         try:
+            num_frames = len(self.frames)
+            delay = max(100, 1000 // num_frames)
+
             self.config(image=self.frames[self.current_frame])
-            self.current_frame = (self.current_frame + 1) % len(self.frames)
-            self.update_id = self.after(50, self.update_animation)
+            self.current_frame = (self.current_frame + 1) % num_frames
+
+            self.update_id = self.after(delay-25, self.update_animation)
         except Exception as e:
             print(f"Error during animation update: {e}")
 
@@ -53,9 +58,11 @@ class DraggableWindow(tk.Tk):
         self.title("GIF Player")
         self.attributes('-topmost', True)
         self.overrideredirect(True)
+        self.geometry("800x600")
+        self.configure(bg='black')
 
-        self.gif_widget = AnimatedGif(self, gif_path=gif_path)
-        self.gif_widget.pack()
+        self.gif_widget = AnimatedGif(self, gif_path=gif_path, bg='black')
+        self.gif_widget.pack(fill=tk.BOTH, expand=True)
         self.drag_start_x = 0
         self.drag_start_y = 0
 
@@ -66,8 +73,11 @@ class DraggableWindow(tk.Tk):
         self.context_menu = Menu(self, tearoff=0)
         self.context_menu.add_command(label="Open GIF", command=self.open_gif_menu)
 
-        self.gif_directory = r'C:\Users\wowbg\PycharmProjects\pythonProject3\gifonscreen\gif'
+        self.gif_directory = os.path.join(os.getcwd(), 'gif')
         self.gif_files = self.load_gif_files()
+
+
+        self.attributes('-transparentcolor', 'black')
 
     def on_start_drag(self, event):
         self.drag_start_x = event.x_root
@@ -99,7 +109,7 @@ class DraggableWindow(tk.Tk):
         menu = tk.Menu(self.context_menu, tearoff=0)
         for gif_file in self.gif_files:
             menu.add_command(label=gif_file, command=lambda f=gif_file: self.change_gif(f))
-        menu.add_command(label="Выход", command=exit_program)
+        menu.add_command(label="Exit", command=exit_program)
         menu.post(self.winfo_pointerx(), self.winfo_pointery())
 
     def change_gif(self, gif_file):
@@ -107,10 +117,9 @@ class DraggableWindow(tk.Tk):
         print(f"Changing GIF to {gif_path}")
         self.gif_widget.gif_path = gif_path
         self.gif_widget.load_gif()
-        self.gif_widget.update_animation()
 
 
 if __name__ == "__main__":
-    initial_gif_path = r'C:\Users\wowbg\PycharmProjects\pythonProject3\gifonscreen\gif\3.gif'
+    initial_gif_path = os.path.join(os.getcwd(), 'gif', '2.gif')
     app = DraggableWindow(initial_gif_path)
     app.mainloop()
